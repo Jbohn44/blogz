@@ -42,15 +42,15 @@ def blog_index():
 
 @app.route('/index')
 def index():
-    return redirect('/blog')
+    return render_template('index.html')
 
 @app.route('/signup')
 def signup():
-    return redirect('/blog')
+    return render_template('signup.html')
 
 @app.route('/login')
 def login():
-    return redirect('/blog')
+    return render_template('login.html')
 
 
 @app.route('/blog', methods=['GET', 'POST'])
@@ -85,8 +85,6 @@ def new_post():
         
     
         if not title_error and not body_error:
-            #blog_title = request.form['title']
-            #blog_body = request.form['blog-body']
             new_post = Blog(blog_title, blog_body, owner)
             db.session.add(new_post)
             db.session.commit()
