@@ -1,5 +1,18 @@
 {% extends "base.html" %}
-
 {% block content %}
+    <h1 class="toppage">BLOGZ</h1>
 
+
+
+    
+
+
+        
+    {% for user in users %}
+        <ul>
+            <li><a href="/index?username={{user.username}}">{{user.username}}</a></li>
+        </ul>
+    {% endfor %}
 {% endblock %}
+
+
