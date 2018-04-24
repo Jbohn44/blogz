@@ -23,3 +23,7 @@ body{
     
     background-color: rgb(231, 249, 255);
 }
+
+.right{
+    float: right;
+}

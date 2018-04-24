@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -43,12 +43,12 @@ class User(db.Model):
   #  if request.endpoint not in allowed_routes and 'username' not in session:
     
    #     return redirect('/login')
+   #this somehow disabled css... Also didn't work correctly
 
 
 @app.route('/')
 def blog_index():
     return redirect('/index')
-
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -92,8 +92,19 @@ def signup():
    
         return render_template('signup.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.password == password:
+            session['username'] = username
+            flash('logged in')
+            return redirect('/newpost?username={0}'.format(username)) #think about maybe formating this to user.id ??
+        else:
+            flash('username or password incorrect') #need to fix this to make sure flash is working
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -108,7 +119,7 @@ def index():
         if request.args.get('id'):
             blog_id = request.args.get('id')
             blog = Blog.query.get(blog_id)
-            return render_template('display.html', blog = blog)
+            return render_template('allposts.html', blog = blog)
 
     
         users = User.query.all()
@@ -139,14 +150,22 @@ def new_post():
             db.session.commit()
 
         
-            return redirect('/blog?id={0}'.format(new_post.id))
+            return redirect('/index?id={0}'.format(new_post.id))
         else:
             return render_template('newpost.html', title_error = title_error, body_error = body_error )
 
     #else:
     return render_template('newpost.html')
 
+@app.route('/singleUser')
+def single_user():
+    #TODO add functionality to display a single user and their corresponding blog posts
+    return render_template('singleUser.html')
 
+@app.route('/allposts')
+def all_posts():
+    #TODO add functionality to display all users and their corresponding blog posts
+    return render_template('allposts.html')
 
 
 
