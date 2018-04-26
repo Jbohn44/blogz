@@ -174,12 +174,10 @@ def new_post():
 
 @app.route('/singleUser')
 def single_user():
-
-    
-    
-
-    owner = User.query.filter_by().first()
-    return render_template('singleUser.html', blogs = get_owner_blog(owner.id))
+    if request.args.get('id'):
+        owner_id = request.args.get('id')
+        owner = Blog.query.get(owner_id)
+        return render_template('singleUser.html', blogs = get_owner_blog(owner.id))
 
 @app.route('/blog')
 def all_posts():
