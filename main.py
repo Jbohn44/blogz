@@ -40,7 +40,7 @@ def get_owner_blog(id):
 
 @app.before_request
 def require_login():
-    not_allowed_routes = ['newpost', 'logout']
+    not_allowed_routes = ['logout', 'newpost']
     if 'username' not in session and request.endpoint in not_allowed_routes:
         return redirect('/login')
    #this somehow disabled css... Also didn't work correctly
@@ -84,7 +84,7 @@ def signup():
                 db.session.commit()
                 session['username']= username
             
-                return redirect ('/newpost?username={0}'.format(username))
+                return redirect ('/newpost?username={0}'.format(new_user.username))
         else:
             return render_template('signup.html', username_error=username_error,
                     password_error=password_error, verify_error=verify_error)
@@ -94,18 +94,31 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
-            session['username'] = username
-            flash('logged in')
-            return redirect('/newpost?username={0}'.format(user.id)) #think about maybe formating this to user.id ??
-        else:
-            flash('username or password incorrect') #need to fix this to make sure flash is working
+        username_error = ''
+        password_error = ''
 
-    return render_template('login.html')
+        user = User.query.filter_by(username=username).first()
+        if user and user.password != password:
+            password_error = "Password Error"
+        if not user:
+            username_error = "User Does Not Exist"
+
+        if (not password_error) and (not username_error):    
+            if user and user.password == password:
+                session['username'] = username
+                flash('logged in')
+                return redirect('/newpost?username={0}'.format(user.id)) #think about maybe formating this to user.id ??
+        else:
+            return render_template('login.html', username_error = username_error,
+                                    password_error = password_error)
+    
 
 @app.route('/logout', methods=['POST', 'GET'])
 def logout():
@@ -125,10 +138,11 @@ def index():
         users = User.query.all()
         return render_template('index.html', users = users)
 
-@app.route('/newpost', methods=['GET', 'POST'])
+@app.route('/newpost', methods=['POST', 'GET'])
 def new_post():
-
-    #owner = User.query.filter_by(username=session['username']).first()
+    if 'username' not in session:
+        return redirect('/login')
+    
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['blog-body']
@@ -151,7 +165,7 @@ def new_post():
             db.session.commit()
 
         
-            return redirect('/index?id={0}'.format(new_post.id))
+            return redirect('/blog?id={0}'.format(new_post.id))
         else:
             return render_template('newpost.html', title_error = title_error, body_error = body_error )
 
