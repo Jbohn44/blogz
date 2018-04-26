@@ -34,15 +34,15 @@ class User(db.Model):
         self.password = password
 
 
+def get_owner_blog(id):
+    return Blog.query.filter_by(owner_id=id).all()
 
 
-
-#@app.before_request
-#def require_login():
- #   allowed_routes = ['login', 'signup', 'index']
-  #  if request.endpoint not in allowed_routes and 'username' not in session:
-    
-   #     return redirect('/login')
+@app.before_request
+def require_login():
+    not_allowed_routes = ['newpost', 'logout']
+    if 'username' not in session and request.endpoint in not_allowed_routes:
+        return redirect('/login')
    #this somehow disabled css... Also didn't work correctly
 
 
@@ -101,16 +101,16 @@ def login():
         if user and user.password == password:
             session['username'] = username
             flash('logged in')
-            return redirect('/newpost?username={0}'.format(username)) #think about maybe formating this to user.id ??
+            return redirect('/newpost?username={0}'.format(user.id)) #think about maybe formating this to user.id ??
         else:
             flash('username or password incorrect') #need to fix this to make sure flash is working
 
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST', 'GET'])
 def logout():
     del session['username']
-    return redirect('/')
+    return redirect('/blog')
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -119,7 +119,7 @@ def index():
         if request.args.get('id'):
             blog_id = request.args.get('id')
             blog = Blog.query.get(blog_id)
-            return render_template('allposts.html', blog = blog)
+            return render_template('blog.html', blog = blog)
 
     
         users = User.query.all()
@@ -128,7 +128,7 @@ def index():
 @app.route('/newpost', methods=['GET', 'POST'])
 def new_post():
 
-    owner = User.query.filter_by(username=session['username']).first()
+    #owner = User.query.filter_by(username=session['username']).first()
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['blog-body']
@@ -145,6 +145,7 @@ def new_post():
         
     
         if not title_error and not body_error:
+            owner = User.query.filter_by(username=session['username']).first()
             new_post = Blog(blog_title, blog_body, owner)
             db.session.add(new_post)
             db.session.commit()
@@ -159,13 +160,23 @@ def new_post():
 
 @app.route('/singleUser')
 def single_user():
-    #TODO add functionality to display a single user and their corresponding blog posts
-    return render_template('singleUser.html')
 
-@app.route('/allposts')
+    
+    
+
+    owner = User.query.filter_by().first()
+    return render_template('singleUser.html', blogs = get_owner_blog(owner.id))
+
+@app.route('/blog')
 def all_posts():
-    #TODO add functionality to display all users and their corresponding blog posts
-    return render_template('allposts.html')
+    if request.args.get('id'):
+            blog_id = request.args.get('id')
+            blog = Blog.query.get(blog_id)
+            return render_template('display.html', blog = blog)
+
+    
+    blogs = Blog.query.all()
+    return render_template('blog.html', blogs = blogs)
 
 
 
