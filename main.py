@@ -63,7 +63,7 @@ def signup():
         username_error = ''
         password_error = ''
         verify_error = ''
-        
+        existing_user_error = ''
         if (not username) or (username.strip() == '') or ((len(username) > 20 or len(username) < 3)) or (' ' in username):
             username_error = "That's not a valid username"
             username = ''
@@ -76,7 +76,10 @@ def signup():
 
 
         existing_user = User.query.filter_by(username=username).first()
-        if (not username_error) and (not password_error) and (not verify_error):
+
+        if existing_user:
+            existing_user_error = 'User already Exists'
+        if (not username_error) and (not password_error) and (not verify_error) and (not existing_user):
             
             if not existing_user:
                 new_user = User(username, password)
@@ -87,7 +90,7 @@ def signup():
                 return redirect ('/newpost?username={0}'.format(new_user.username))
         else:
             return render_template('signup.html', username_error=username_error,
-                    password_error=password_error, verify_error=verify_error)
+                    password_error=password_error, verify_error=verify_error, existing_user_error = existing_user_error)
     else:
    
         return render_template('signup.html')

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
     <h1>Register</h1>
+    <div class="error">{{existing_user_error}}</div>
     <form action="signup" method="post">
         <table>
             <tr>
